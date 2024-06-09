@@ -1,0 +1,2057 @@
+import 'package:demopatient/utilities/decoration.dart';
+import 'package:demopatient/Screen/appointment/choosetimeslots.dart';
+import 'package:demopatient/Service/Firebase/readData.dart';
+import 'package:demopatient/utilities/color.dart';
+import 'package:demopatient/utilities/style.dart';
+import 'package:demopatient/utilities/toastMsg.dart';
+import 'package:demopatient/widgets/appbarsWidget.dart';
+import 'package:demopatient/widgets/loadingIndicator.dart';
+import 'package:flutter/material.dart';
+import 'package:demopatient/utilities/dialogBox.dart';
+import 'package:get/get.dart';
+
+class AppointmentPage extends StatefulWidget {
+  final doctId;
+  final deptName;
+  final doctName;
+  final hospitalName;
+  final stopBooking;
+  final fee;
+  final clinicId;
+  final cityId;
+  final deptId;
+  final cityName;
+  final clinicName;
+  final walkinActive;
+  final videoActive;
+  final payLaterActive;
+  final payNowActive;
+  final wspd;
+  final vspd;
+  const AppointmentPage(
+      {Key? key,
+      this.doctId,
+      this.deptName,
+      this.doctName,
+      this.hospitalName,
+      this.stopBooking,
+      this.fee,
+      this.cityId,
+      this.clinicId,
+      this.deptId,
+      this.cityName,
+      this.clinicName,
+      this.vspd,
+        this.payLaterActive,
+        this.payNowActive,
+        this.videoActive,
+        this.walkinActive,
+        this.wspd
+      })
+      : super(key: key);
+
+
+
+import 'package:demopatient/Screen/resch/reSchTimeSlotPage.dart';
+import 'package:demopatient/Screen/prescription/prescriptionListByIdPage.dart';
+import 'package:demopatient/Screen/resch/walkInReschPage.dart';
+import 'package:demopatient/Service/Firebase/updateData.dart';
+import 'package:demopatient/Service/Noftification/handleFirebaseNotification.dart';
+import 'package:demopatient/Service/Noftification/handleLocalNotification.dart';
+import 'package:demopatient/Service/appointmentService.dart';
+import 'package:demopatient/Service/drProfileService.dart';
+import 'package:demopatient/Service/notificationService.dart';
+import 'package:demopatient/Screen/jitscVideoCall.dart';
+import 'package:demopatient/Service/userService.dart';
+import 'package:demopatient/model/appointmentModel.dart';
+import 'package:demopatient/model/notificationModel.dart';
+import 'package:demopatient/utilities/color.dart';
+import 'package:demopatient/utilities/dialogBox.dart';
+import 'package:demopatient/utilities/toastMsg.dart';
+import 'package:demopatient/widgets/appbarsWidget.dart';
+import 'package:demopatient/widgets/bottomNavigationBarWidget.dart';
+import 'package:demopatient/widgets/loadingIndicator.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+class AppointmentDetailsPage extends StatefulWidget {
+  final AppointmentModel? appointmentDetails;
+
+  const AppointmentDetailsPage({Key? key, this.appointmentDetails})
+      : super(key: key);
+  @override
+  _AppointmentDetailsPageState createState() => _AppointmentDetailsPageState();
+}
+
+class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
+  String _adminFCMid = "";
+  String doctorFcm = "";
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _latsNameController = TextEditingController();
+  final TextEditingController _ageController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _timeController = TextEditingController();
+  final TextEditingController _phnController = TextEditingController();
+
+  TextEditingController _emailController = TextEditingController();
+
+  TextEditingController _serviceNameController = TextEditingController();
+  TextEditingController _serviceName2 = TextEditingController();
+
+  final TextEditingController _statusController = TextEditingController();
+  final TextEditingController _serviceTimeController = TextEditingController();
+  final TextEditingController _appointmentIdController = TextEditingController();
+  final TextEditingController _uIdController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
+  final TextEditingController _createdDateTimeController = TextEditingController();
+  final TextEditingController _doctNameController = TextEditingController();
+  final TextEditingController _deptController = TextEditingController();
+  final TextEditingController _hnameController = TextEditingController();
+  final TextEditingController _lastUpdatedController = TextEditingController();
+  final TextEditingController _orderIdController = TextEditingController();
+  final TextEditingController _paymentStatusController = TextEditingController();
+  final TextEditingController _amountCont = TextEditingController();
+  final TextEditingController _paymentModeCont = TextEditingController();
+  final TextEditingController _paymentDateController = TextEditingController();
+  final TextEditingController _appointmentStatusCont = TextEditingController();
+  final TextEditingController _gmeetLinkCont = TextEditingController();
+  final TextEditingController _cityName = TextEditingController();
+  final TextEditingController _clinicName = TextEditingController();
+  final TextEditingController _mrdController = TextEditingController();
+  final TextEditingController _tokenNumberController = TextEditingController();
+  String _isBtnDisable = "false";
+  bool _isLoading = false;
+  String vby = "0";
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    getAndSetData();
+    super.initState();
+    vby = widget.appointmentDetails!.vByUser;
+    _firstNameController.text = widget.appointmentDetails!.pFirstName;
+    _latsNameController.text = widget.appointmentDetails!.pLastName;
+    _ageController.text = widget.appointmentDetails!.age;
+    _cityController.text = widget.appointmentDetails!.pCity;
+    _emailController.text = widget.appointmentDetails!.pEmail;
+    _phnController.text = widget.appointmentDetails!.pPhn;
+    _dateController.text = widget.appointmentDetails!.appointmentDate;
+    _timeController.text = widget.appointmentDetails!.appointmentTime;
+    _serviceNameController.text = widget.appointmentDetails!.serviceName;
+    _serviceName2.text = widget.appointmentDetails!.serviceName == "Online"
+        ? "Video Consultation".tr
+        : "Hospital Visit".tr;
+    _serviceTimeController.text =
+        (widget.appointmentDetails!.serviceTimeMin).toString();
+    _appointmentIdController.text = widget.appointmentDetails!.id;
+    _uIdController.text = widget.appointmentDetails!.uId; //firebase user id
+    _descController.text = widget.appointmentDetails!.description;
+    _createdDateTimeController.text =
+        widget.appointmentDetails!.createdTimeStamp;
+    _lastUpdatedController.text = widget.appointmentDetails!.updatedTimeStamp;
+    _statusController.text = widget.appointmentDetails!.appointmentStatus;
+
+    _doctNameController.text = widget.appointmentDetails!.doctName;
+    _deptController.text = widget.appointmentDetails!.department;
+    _hnameController.text = widget.appointmentDetails!.hName;
+    _cityName.text = widget.appointmentDetails!.cityName;
+    _clinicName.text = widget.appointmentDetails!.clinicName;
+
+    if (widget.appointmentDetails!.appointmentStatus == "Rejected" ||
+        widget.appointmentDetails!.appointmentStatus == "Canceled") {
+      setState(() {
+        _isBtnDisable = "";
+      });
+    }
+    _paymentStatusController.text = widget.appointmentDetails!.paymentStatus;
+    _paymentDateController.text = widget.appointmentDetails!.paymentDate;
+    _orderIdController.text = widget.appointmentDetails!.oderId;
+    _amountCont.text = widget.appointmentDetails!.amount;
+    _paymentModeCont.text = widget.appointmentDetails!.paymentMode;
+    if (widget.appointmentDetails!.gMeetLink != null &&
+        widget.appointmentDetails!.gMeetLink != "")
+      _gmeetLinkCont.text = widget.appointmentDetails!.gMeetLink;
+    else
+      _gmeetLinkCont.text =
+          "Please wait, Doctor will update the Google Meet link very soon";
+    if (widget.appointmentDetails!.isOnline == "true" &&
+        widget.appointmentDetails!.isOnline != null &&
+        widget.appointmentDetails!.isOnline != "")
+      _appointmentStatusCont.text = "Online";
+    else
+      _appointmentStatusCont.text = "Offline";
+
+    if (widget.appointmentDetails!.appointmentStatus == "Rejected" ||
+        widget.appointmentDetails!.appointmentStatus == "Canceled" ||
+        widget.appointmentDetails!.paymentStatus == "SUCCESS") {
+      setState(() {
+        _isBtnDisable = "";
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _dateController.dispose();
+    _timeController.dispose();
+    _cityController.dispose();
+    _ageController.dispose();
+    _firstNameController.dispose();
+    _latsNameController.dispose();
+    _phnController.dispose();
+    _emailController.dispose();
+    _serviceNameController.dispose();
+    _serviceTimeController.dispose();
+    _appointmentIdController.dispose();
+    _uIdController.dispose();
+    _descController.dispose();
+    _deptController.dispose();
+    _doctNameController.dispose();
+    _hnameController.dispose();
+    _orderIdController.dispose();
+    _paymentDateController.dispose();
+    _paymentStatusController.dispose();
+    _paymentModeCont.dispose();
+    _orderIdController.dispose();
+    _amountCont.dispose();
+    _appointmentStatusCont.dispose();
+    _gmeetLinkCont.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        bottomNavigationBar: widget.appointmentDetails!.appointmentStatus ==
+                "Visited"
+            ? BottomNavigationStateWidget(
+                title: "Get Prescription".tr,
+                onPressed: _handlePrescription,
+                clickable: _isBtnDisable)
+            : BottomNavigationTwoWidget(
+                onTap:
+                    widget.appointmentDetails!.appointmentStatus == "Canceled"
+                        ? null
+                        : () {
+                            _takeConfirmation();
+                          },
+                title: "Cancel".tr,
+                title2: "Reschedule".tr,
+                onTap2: widget.appointmentDetails!.appointmentStatus ==
+                        "Canceled"
+
+
+
+import 'package:demopatient/Screen/rebook/rebookChooseTimeSlot.dart';
+import 'package:demopatient/Service/Firebase/readData.dart';
+import 'package:demopatient/Service/appointmentService.dart';
+import 'package:demopatient/utilities/color.dart';
+import 'package:demopatient/utilities/style.dart';
+import 'package:demopatient/widgets/bottomNavigationBarWidget.dart';
+import 'package:demopatient/widgets/errorWidget.dart';
+import 'package:demopatient/widgets/loadingIndicator.dart';
+import 'package:demopatient/widgets/noDataWidget.dart';
+
+import 'package:flutter/material.dart';
+import 'package:demopatient/Screen/appointment/appointmentDetailsPage.dart';
+import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class AppointmentStatus extends StatefulWidget {
+  AppointmentStatus({Key? key}) : super(key: key);
+
+  @override
+  _AppointmentStatusState createState() => _AppointmentStatusState();
+}
+
+class _AppointmentStatusState extends State<AppointmentStatus> {
+  bool isLoading = false;
+  String uid = "";
+  @override
+  void initState() {
+    getAndSetData();
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: isLoading
+          ? LoadingIndicatorWidget()
+          : Scaffold(
+              bottomNavigationBar: BottomNavigationWidget(
+                  title: "Book an appointment".tr, route: '/CityListPage'),
+              appBar: AppBar(
+                title: Text("Appointments".tr, style: kAppbarTitleStyle),
+                centerTitle: true,
+                backgroundColor: appBarColor,
+                actions: [_appBarActionWidget()],
+                bottom: TabBar(
+                  indicatorWeight: 3,
+                  indicatorColor: Colors.white,
+                  labelPadding: const EdgeInsets.all(8),
+                  tabs: [
+                    Text(
+                      "Upcoming".tr,
+                      style: kAppbarTitleStyle,
+                    ),
+                    Text(
+                      "Past".tr,
+                      style: kAppbarTitleStyle,
+                    ),
+                  ],
+                ),
+              ),
+              body: Container(
+                child: TabBarView(
+                  children: [
+                    _upcomingAppointmentList(),
+                    _pastAppointmentList()
+                  ],
+                ),
+              )),
+    );
+  }
+
+  Widget _upcomingAppointmentList() {
+    // <1> Use FutureBuilder
+    return FutureBuilder(
+        // <2> Pass `Future<QuerySnapshot>` to future
+        future: AppointmentService.getData(
+            "Pending,Confirmed,Rescheduled"), ////fetch appointment details according to uid
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          if (snapshot.hasData) {
+            return snapshot.data!.length == 0
+                ? NoBookingWidget()
+                : Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: snapshot.data!.length,
+                        itemBuilder: (BuildContext ctxt, int index) {
+                          return _card(snapshot.data, index, true);
+                        }));
+          } else if (snapshot.hasError) {
+            return IErrorWidget();
+          } else {
+            return LoadingIndicatorWidget();
+          }
+        });
+  }
+
+  Widget _pastAppointmentList() {
+    // <1> Use FutureBuilder
+    return FutureBuilder(
+        // <2> Pass `Future<QuerySnapshot>` to future
+        future: AppointmentService.getData(
+            "Visited,Rejected,Canceled"), //fetch appointment details according to uid
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          if (snapshot.hasData)
+            return snapshot.data.length == 0
+                ? NoDataWidget()
+                : Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: new ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: snapshot.data.length,
+                        itemBuilder: (BuildContext ctxt, int index) {
+                          return _card(snapshot.data, index, false);
+                        }));
+          else if (snapshot.hasError)
+            return IErrorWidget(); //if any error then you can also use any other widget here
+          else
+            return LoadingIndicatorWidget();
+        });
+  }
+
+  Widget _card(appointmentDetails, int index, bool isForUpcoming) {
+    return GestureDetector(
+      onTap: () async{
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AppointmentDetailsPage(
+                appointmentDetails: appointmentDetails[index]),
+          ),
+        );
+      },
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        elevation: 5,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              _appointmentDate(
+                appointmentDetails[index].appointmentDate,
+              ),
+              // VerticalDivider(),
+
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Row(
+                        children: [
+                          Text("Name: ".tr,
+                              style: TextStyle(
+                                fontFamily: 'OpenSans-Regular',
+                                fontSize: 12,
+                              )),
+                          Text(
+                              appointmentDetails[index].pFirstName +
+                                  " " +
+                                  appointmentDetails[index].pLastName,
+                              style: TextStyle(
+                                fontFamily: 'OpenSans-SemiBold',
+                                fontSize: 15,
+                              )),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Text("Time: ".tr,
+                              style: TextStyle(
+                                fontFamily: 'OpenSans-Regular',
+                                fontSize: 12,
+                              )),
+                          Text(appointmentDetails[index].appointmentTime,
+                              style: TextStyle(
+                                fontFamily: 'OpenSans-SemiBold',
+                                fontSize: 15,
+                              )),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                              child: Container(
+                                  height: 1, color: Colors.grey[300])),
+                          Padding(
+                              padding: const EdgeInsets.only(left: 5),
+                              child: appointmentDetails[index]
+                                          .appointmentStatus ==
+                                      "Pending"
+                                  ? _statusIndicator(Colors.yellowAccent)
+                                  : appointmentDetails[index]
+                                              .appointmentStatus ==
+                                          "Rescheduled"
+                                      ? _statusIndicator(Colors.orangeAccent)
+                                      : appointmentDetails[index]
+                                                  .appointmentStatus ==
+                                              "Rejected"
+                                          ? _statusIndicator(Colors.red)
+                                          : appointmentDetails[index]
+                                                      .appointmentStatus ==
+                                                  "Confirmed"
+                                              ? _statusIndicator(Colors.green)
+                                              : null),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(5, 0, 10, 0),
+                            child: Text(
+                              appointmentDetails[index].appointmentStatus,
+                              style: TextStyle(
+                                fontFamily: 'OpenSans-Regular',
+                                fontSize: 12,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                  appointmentDetails[index].clinicName +
+                                      "  " +
+                                      appointmentDetails[index].cityName,
+                                  style: TextStyle(
+                                    fontFamily: 'OpenSans-Regular',
+                                    fontSize: 12,
+                                  )),
+                              Text(appointmentDetails[index].doctName,
+                                  style: TextStyle(
+                                    fontFamily: 'OpenSans-Regular',
+                                    fontSize: 12,
+                                  )),
+                              Text(
+                                  appointmentDetails[index].serviceName ==
+                                          "Online"
+                                      ? "Video Consultation".tr
+                                      : "Hospital Visit".tr,
+                                  style: TextStyle(
+                                    fontFamily: 'OpenSans-SemiBold',
+                                    fontSize: 15,
+                                  )),
+                            ],
+                          ),
+                          // appointmentDetails[index].appointmentStatus=="Visited"?
+                          isForUpcoming
+                              ? Container()
+                              : appointmentDetails[index].walkin == "1"
+                                  ? Container()
+                                  : ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: btnColor,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(5.0)),
+                                      ),
+                                      child: Center(
+                                          child: Text("Rebook".tr,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                              ))),
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                RebookChooseTimeSlotPage(
+                                              serviceName:
+                                                  appointmentDetails[index]
+                                                      .serviceName,
+                                              serviceTimeMin:
+                                                  appointmentDetails[index]
+                                                      .serviceTimeMin
+                                                      .toString(),
+                                              doctName:
+                                                  appointmentDetails[index]
+                                                      .doctName,
+
+
+
+import 'package:demopatient/Service/appointmentService.dart';
+import 'package:demopatient/Service/closingDateService.dart';
+import 'package:demopatient/Service/drProfileService.dart';
+import 'package:demopatient/SetData/screenArg.dart';
+import 'package:demopatient/model/doctTimeSlotModel.dart';
+import 'package:demopatient/utilities/color.dart';
+import 'package:demopatient/widgets/appbarsWidget.dart';
+import 'package:demopatient/widgets/loadingIndicator.dart';
+import 'package:flutter/material.dart';
+import 'package:date_picker_timeline/date_picker_timeline.dart';
+import 'package:get/get.dart';
+
+class ChooseTimeSlotPage extends StatefulWidget {
+  final openingTime;
+  final closingTime;
+  final serviceName;
+  final serviceTimeMin;
+  final closedDay;
+  final lunchOpTime;
+  final lunchCloTime;
+  final drClosingDate;
+  final deptName;
+  final doctName;
+  final hospitalName;
+  final doctId;
+  final stopBooking;
+  final fee;
+  final clinicId;
+  final cityId;
+  final deptId;
+  final cityName;
+  final clinicName;
+  final vspd;
+  final wspd;
+  final payNowActive;
+  final payLaterActive;
+
+  const ChooseTimeSlotPage(
+      {Key? key,
+      this.openingTime,
+      this.closingTime,
+      this.serviceName,
+      this.serviceTimeMin,
+      this.closedDay,
+      this.lunchOpTime,
+      this.lunchCloTime,
+      this.drClosingDate,
+      this.deptName,
+      this.hospitalName,
+      this.doctName,
+      this.doctId,
+      this.stopBooking,
+      this.fee,
+      this.cityId,
+      this.clinicId,
+      this.deptId,
+      this.cityName,
+      this.clinicName,
+      this.wspd,
+      this.vspd,
+      this.payLaterActive,
+      this.payNowActive})
+      : super(key: key);
+
+  @override
+  _ChooseTimeSlotPageState createState() => _ChooseTimeSlotPageState();
+}
+
+class _ChooseTimeSlotPageState extends State<ChooseTimeSlotPage> {
+  List<DoctorTimeSlotModel> drTimeSlots=[];
+  bool _isLoading = false;
+  var _selectedDate;
+  var _selectedDay = DateTime.now().weekday;
+  List _closingDate = [];
+  Map closingTime = Map();
+  List _dayCode = [];
+  int filledSlot=0;
+  ScrollController scrollController=ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _getAndSetAllInitialData();
+  }
+
+  _getAndSetAllInitialData() async {
+    setState(() {
+      _isLoading = true;
+    });
+    _selectedDate = await _initializeDate(); //Initialize start time
+    await _setClosingDate();
+    final getDrSlots=await DrProfileService.getDoctTimeSlot(widget.doctId);
+    if(getDrSlots.isNotEmpty)
+      setState(() {
+        drTimeSlots=getDrSlots;
+      });
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+
+  Future<String> _initializeDate() async {
+    var date = new DateTime.now().toString();
+    var dateParse = DateTime.parse(date);
+    var formattedDate = "${dateParse.month}-${dateParse.day}-${dateParse.year}";
+
+    return formattedDate;
+  }
+
+
+
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        // bottomNavigationBar: BottomNavigationStateWidget(
+        //   title: "Next",
+        //   onPressed: () {
+        //     // Navigator.pushNamed(context, "/RegisterPatientPage",
+        //     //     arguments: ChooseTimeScrArg(
+        //     //         widget.serviceName,
+        //     //         widget.serviceTimeMin,
+        //     //         _setTime,
+        //     //         _selectedDate,
+        //     //         widget.doctName,
+        //     //         widget.deptName,
+        //     //         widget.hospitalName,
+        //     //         widget.doctId,
+        //     //         widget.fee,
+        //     //         widget.deptId,
+        //     //         widget.cityId,
+        //     //         widget.clinicId,
+        //     //         widget.clinicName,
+        //     //         widget.cityName));
+        //   },
+        //   clickable: _setTime,
+        // ),
+        body: Stack(
+          clipBehavior: Clip.none,
+          children: <Widget>[
+            CAppBarWidget(title: "Book an appointment".tr),
+            Positioned(
+              top: 80,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                height: MediaQuery.of(context).size.height,
+                decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(10),
+                        topRight: Radius.circular(10))),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: <Widget>[
+                      Padding(
+                          padding: const EdgeInsets.only(
+                              top: 20.0, left: 10, right: 10),
+                          child: SingleChildScrollView(
+                            // controller: _scrollController,
+                            child: Column(
+                              children: <Widget>[
+                                _buildCalendar(),
+                                const Divider(),
+                                _isLoading
+                                    ? LoadingIndicatorWidget()
+                                    : _closingDate.contains(_selectedDate) ||
+                                            _dayCode.contains(_selectedDay)
+                                        ? Center(
+                                            child: Text(
+                                            "Sorry! we can't take appointments in this day".tr,
+                                            style: const TextStyle(
+                                              fontFamily: 'OpenSans-SemiBold',
+                                              fontSize: 14,
+                                            ),
+                                          ))
+                                        : !checkSlotExists()?
+                                                          Text(
+                                                            "Sorry! no any slots available in this date".tr,
+                                                            style: TextStyle(
+                                                              fontFamily: 'OpenSans-SemiBold',
+                                                              fontSize: 14,
+                                                            ),
+                                                          )
+
+                                :Column(
+                                          children: [
+                                            Text( widget.serviceName=="Offline"?"Walk-in Appointment".tr+" ${filledSlot}/${widget.wspd} "+"Slots".tr:"Video Consultant".tr+" ${filledSlot}/${widget.vspd} "+"Slots".tr,  style: TextStyle(
+                                              fontFamily: 'OpenSans-SemiBold',
+                                              fontSize: 14,
+                                            )),
+                                            ListView.builder(
+                                              controller: scrollController,
+                                  shrinkWrap: true,
+                                  itemCount: drTimeSlots.length,
+                                  itemBuilder: (context, index) {
+                                    final slotType=widget.serviceName=="Online"?"1":"0";
+                                    return  drTimeSlots[index].dayCode==_selectedDay.toString()&&drTimeSlots[index].slotType==slotType?
+                                    Card(
+                                      color: Colors.grey.shade100,
+                                      shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(15.0),
+                                      ),
+                                      elevation: 1,
+                                      child: ListTile(
+                                            title: Text(drTimeSlots[index].timeSlot,
+                                            style: TextStyle(
+                                              fontFamily: 'OpenSans-SemiBold',
+                                              fontSize: 16,
+                                            ),),
+                                            trailing:ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.green,
+                                                  shape:
+                                                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.0)),
+                                                ),
+                                                onPressed: (){
+                                                  Navigator.pushNamed(context, "/RegisterPatientPage",
+                                                      arguments: ChooseTimeScrArg(
+                                                          widget.serviceName,
+                                                          widget.serviceTimeMin,
+                                                        drTimeSlots[index].timeSlot,
+                                                          _selectedDate,
+                                                          widget.doctName,
+                                                          widget.deptName,
+                                                          widget.hospitalName,
+                                                          widget.doctId,
+                                                          widget.fee,
+                                                          widget.deptId,
+                                                          widget.cityId,
+                                                          widget.clinicId,
+                                                          widget.clinicName,
+                                                          widget.cityName,
+                                                        widget.payNowActive,
+                                                        widget.payLaterActive,
+                                                        widget.wspd,
+                                                        widget.vspd
+                                                      ));
+                                                },
+                                                child: Padding(
+                                                  padding: const EdgeInsets.fromLTRB(10,0,10,0),
+                                                  child: Text( "Book".tr, style: TextStyle(fontSize: 14)),
+                                                )),
+                                      ),
+                                    ):Container();
+
+                                  }),
+                                          ],
+                                        ),
+
+                              ],
+                            ),
+                          )),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ));
+  }
+
+  Widget _buildCalendar() {
+    return DatePicker(
+      DateTime.now(),
+      initialSelectedDate: DateTime.now(),
+      selectionColor: appBarColor,
+      selectedTextColor: Colors.white,
+      daysCount: 7,
+      onDateChange: (date) {
+        // New date selected
+        setState(() {
+          final dateParse = DateTime.parse(date.toString());
+          _selectedDate = "${dateParse.month}-${dateParse.day}-${dateParse.year}";
+          _selectedDay = date.weekday;
+          checkFilledSlot(_selectedDate);
+        });
+      },
+    );
+  }
+
+
+  _setClosingDate() async {
+    final res = await ClosingDateService.getData(
+        widget.doctId); // ReadData.fetchSettings();
+    if (res.isNotEmpty) {
+      for (var e in res) {
+        if (e.allDay == "1") {
+          print(";;;;;;;;;llllllllllllllll${e.date}");
+          setState(() {
+            _closingDate.add(e.date);
+            //res["closingDate"];
+          });
+        } else if (e.allDay == "0") {
+          setState(() {
+            closingTime[e.date] = [];
+            closingTime[e.date].addAll(e.blockTime);
+            print("LCccccccccccc${closingTime}");
+          });
+        }
+      }
+    }
+    if (widget.drClosingDate != "" && widget.drClosingDate != null) {
+      final coledDatArr = (widget.drClosingDate).split(',');
+      for (var element in coledDatArr) {
+        _closingDate.add(int.parse(element));
+      }
+    }
+  }
+
+ bool checkSlotExists() {
+    final slotType=widget.serviceName=="Online"?"1":"0";
+    bool exists=false;
+    for(int i=0;i<drTimeSlots.length;i++){
+      if(drTimeSlots[i].dayCode==_selectedDay.toString()&&drTimeSlots[i].slotType==slotType)
+      {
+        exists=true;
+        break;
+      }
+    }
+
+    return exists;
+ }
+
+  void checkFilledSlot(selectedDate) async{
+    setState(() {
+      _isLoading=true;
+    });
+    final checkRes = await AppointmentService.getCheckPD(
+      widget.doctId,
+      selectedDate,
+        widget.serviceName=="Online"?"true":"false");
+    setState(() {
+      filledSlot=checkRes.length;
+    });
+
+    setState(() {
+      _isLoading=false;
+    });
+  }
+}
+
+
+
+import 'package:demopatient/Screen/paypalWebView.dart';
+import 'package:demopatient/Service/userService.dart';
+import 'package:demopatient/controller/get_user_controller.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:demopatient/Service/Firebase/updateData.dart';
+import 'package:demopatient/Service/Noftification/handleFirebaseNotification.dart';
+import 'package:demopatient/Service/Noftification/handleLocalNotification.dart';
+import 'package:demopatient/Service/appointmentService.dart';
+import 'package:demopatient/Service/drProfileService.dart';
+import 'package:demopatient/Service/notificationService.dart';
+import 'package:demopatient/SetData/screenArg.dart';
+import 'package:demopatient/config.dart';
+import 'package:demopatient/model/appointmentModel.dart';
+import 'package:demopatient/model/notificationModel.dart';
+import 'package:demopatient/utilities/color.dart';
+import 'package:demopatient/utilities/decoration.dart';
+import 'package:demopatient/utilities/style.dart';
+import 'package:demopatient/utilities/toastMsg.dart';
+import 'package:demopatient/widgets/appbarsWidget.dart';
+import 'package:demopatient/widgets/bottomNavigationBarWidget.dart';
+import 'package:demopatient/widgets/loadingIndicator.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:pay_with_paystack/pay_with_paystack.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+
+class ConfirmationPage extends StatefulWidget {
+  ConfirmationPage({Key? key}) : super(key: key);
+
+  @override
+  _ConfirmationPageState createState() => _ConfirmationPageState();
+}
+
+class _ConfirmationPageState extends State<ConfirmationPage> {
+  // final payStack = PayWithPayStack();
+  String _adminFCMid = "";
+  String doctorFcm = "";
+  bool _isLoading = false;
+  String _isBtnDisable = "false";
+  String _uId = "";
+  String _uName = "";
+  int paymentValue = -1;
+  String payStaclaccessCode="";
+  double _amount = 0;
+  bool isOnline = false;
+  //static const platform = const MethodChannel("razorpay_flutter");
+  var _patientDetailsArgs;
+  Razorpay? _razorpay;
+  int _paymentMeth = 0;
+  double? newAmount;
+  bool deductFromWallet=false;
+  bool needToPay=true;
+  String? walletBalance="0";
+  String? deductedWalletAmount="0";
+  GetUserController _getUserController=Get.find(tag: "wallet");
+  @override
+  void initState() {
+    // payStack.initialize(publicKey: payStackPublickKey);
+    // TODO: implement initState
+    super.initState();
+    _getAndSetUserData();
+    _razorpay = Razorpay();
+    _razorpay!.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay!.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay!.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+  }
+
+  void dispose() {
+    super.dispose();
+    _razorpay!.clear();
+  }
+
+  void openCheckout() async {
+    if(newAmount==0||_amount==0) {
+      _updateBookedPayLaterSlot(
+          _patientDetailsArgs!.pFirstName,
+          _patientDetailsArgs!.pLastName,
+          _patientDetailsArgs!.pPhn,
+          _patientDetailsArgs!.pEmail,
+          _patientDetailsArgs!.age,
+          _patientDetailsArgs!.gender,
+          _patientDetailsArgs!.pCity,
+          _patientDetailsArgs!.desc,
+          _patientDetailsArgs!.serviceName,
+          _patientDetailsArgs!.serviceTimeMIn,
+          _patientDetailsArgs!.selectedTime,
+          _patientDetailsArgs!.selectedDate,
+          _patientDetailsArgs!.doctName,
+          _patientDetailsArgs!.deptName,
+          _patientDetailsArgs!.hName,
+          _patientDetailsArgs!.doctId,
+          "Paid",
+          "XXXXXX",
+          "online",
+          _patientDetailsArgs!.cityId,
+          _patientDetailsArgs!.clinicId,
+          _patientDetailsArgs!.deptId,
+         );
+    }
+      else{
+      var options = {
+        'key': razorpayKeyId,
+        'amount': newAmount == null ? _amount * 100 : newAmount! * 100,
+        'name': _patientDetailsArgs!.pFirstName +
+            " " +
+            _patientDetailsArgs!.pLastName,
+        'description': _patientDetailsArgs!.serviceName,
+        'prefill': {
+          'contact': _patientDetailsArgs!.pPhn,
+          'email': _patientDetailsArgs!.pEmail
+        },
+        "notify": {"sms": true, "email": true},
+        "method": {
+          "netbanking": true,
+          "card": true,
+          "wallet": false,
+          'upi': true,
+        },
+      };
+
+      try {
+        _razorpay!.open(options);
+      } catch (e) {
+        debugPrint('Error: e');
+      }
+    }
+
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    _updateBookedPayLaterSlot(
+        _patientDetailsArgs!.pFirstName,
+        _patientDetailsArgs!.pLastName,
+        _patientDetailsArgs!.pPhn,
+        _patientDetailsArgs!.pEmail,
+        _patientDetailsArgs!.age,
+        _patientDetailsArgs!.gender,
+        _patientDetailsArgs!.pCity,
+        _patientDetailsArgs!.desc,
+        _patientDetailsArgs!.serviceName,
+        _patientDetailsArgs!.serviceTimeMIn,
+        _patientDetailsArgs!.selectedTime,
+        _patientDetailsArgs!.selectedDate,
+        _patientDetailsArgs!.doctName,
+        _patientDetailsArgs!.deptName,
+        _patientDetailsArgs!.hName,
+        _patientDetailsArgs!.doctId,
+        "Paid",
+        response.paymentId,
+        "online",
+        _patientDetailsArgs!.cityId,
+        _patientDetailsArgs!.clinicId,
+        _patientDetailsArgs!.deptId);
+    ToastMsg.showToastMsg("Payment success, please don't press back button".tr);
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    // Fluttertoast.showToast(
+    //     msg: "ERROR: " + response.code.toString() + " - " + response.message,
+    //     toastLength: Toast.LENGTH_SHORT);
+    ToastMsg.showToastMsg("Something went wrong".tr);
+    setState(() {
+      _isLoading = false;
+      _isBtnDisable = "false";
+    });
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    Fluttertoast.showToast(
+        msg: "EXTERNAL_WALLET: " + response.walletName!,
+        toastLength: Toast.LENGTH_SHORT);
+  }
+
+  _getAndSetUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _uName =
+          prefs.getString("firstName")! + " " + prefs.getString("lastName")!;
+      _uId = prefs.getString("uid")!;
+    });
+    final userData=await UserService.getData();
+    if(userData.isNotEmpty){
+      walletBalance=userData[0].amount??"0";
+    }
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _patientDetailsArgs = ModalRoute.of(context)!.settings.arguments;
+
+    if (_patientDetailsArgs!.serviceName == "Online")
+      setState(() {
+        isOnline = true;
+      });
+    else
+      isOnline = false;
+    _amount = double.parse(_patientDetailsArgs!.fee);
+    return Scaffold(
+        bottomNavigationBar: BottomNavigationStateWidget(
+          title: "Confirm Appointment".tr,
+          onPressed: paymentValue==-1?null:() async {
+            setState(() {
+              _isLoading = true;
+              _isBtnDisable = "";
+            });
+            final checkRes = await AppointmentService.getCheckPD(
+                _patientDetailsArgs!.doctId,
+                _patientDetailsArgs!.selectedDate,
+                _patientDetailsArgs!.serviceName=="Online"?"true":"false"
+            );
+           if (checkRes.length<int.parse(_patientDetailsArgs.wspd)) {
+              if (paymentValue == 0) {
+                _updateBookedPayLaterSlot(
+                    _patientDetailsArgs!.pFirstName,
+                    _patientDetailsArgs!.pLastName,
+                    _patientDetailsArgs!.pPhn,
+                    _patientDetailsArgs!.pEmail,
+                    _patientDetailsArgs!.age,
+                    _patientDetailsArgs!.gender,
+                    _patientDetailsArgs!.pCity,
+                    _patientDetailsArgs!.desc,
+                    _patientDetailsArgs!.serviceName,
+                    _patientDetailsArgs!.serviceTimeMIn,
+                    _patientDetailsArgs!.selectedTime,
+                    _patientDetailsArgs!.selectedDate,
+                    _patientDetailsArgs!.doctName,
+                    _patientDetailsArgs!.deptName,
+                    _patientDetailsArgs!.hName,
+                    _patientDetailsArgs!.doctId,
+                    "Pay Later",
+                    "",
+                    "Pay Later",
+                    _patientDetailsArgs!.cityId,
+                    _patientDetailsArgs!.clinicId,
+                    _patientDetailsArgs!.deptId);
+              } else if (paymentValue == 1) {
+                setState(() {
+                  _isLoading = true;
+                  _isBtnDisable = "";
+                });
+                if (_paymentMeth == 2) {
+                  setState(() {
+                    _isLoading = false;
+                    _isBtnDisable = "true";
+                  });
+                  if(newAmount==0||_amount==0) {
+                    _updateBookedPayLaterSlot(
+                      _patientDetailsArgs!.pFirstName,
+                      _patientDetailsArgs!.pLastName,
+                      _patientDetailsArgs!.pPhn,
+                      _patientDetailsArgs!.pEmail,
+                      _patientDetailsArgs!.age,
+                      _patientDetailsArgs!.gender,
+                      _patientDetailsArgs!.pCity,
+                      _patientDetailsArgs!.desc,
+                      _patientDetailsArgs!.serviceName,
+                      _patientDetailsArgs!.serviceTimeMIn,
+                      _patientDetailsArgs!.selectedTime,
+                      _patientDetailsArgs!.selectedDate,
+                      _patientDetailsArgs!.doctName,
+                      _patientDetailsArgs!.deptName,
+                      _patientDetailsArgs!.hName,
+                      _patientDetailsArgs!.doctId,
+                      "Paid",
+                      "XXXXXX",
+                      "online",
+                      _patientDetailsArgs!.cityId,
+                      _patientDetailsArgs!.clinicId,
+                      _patientDetailsArgs!.deptId,
+                    );
+                  }else{
+                    final getAccessCode=await AppointmentService.getPayStackAcceessCodeData("customer@email.com",(_amount * 100).toInt());
+                    if(getAccessCode!="error"){
+                      if (getAccessCode['status']==true){
+                        // Charge charge = Charge()
+                        //   ..amount =   newAmount == null ? (_amount * 100).toInt() : (newAmount! * 100).toInt()
+                        //   ..accessCode = getAccessCode['data']['access_code']
+                        //   ..email = 'customer@email.com';
+                        // CheckoutResponse response = await payStack.checkout(
+                        //   context,
+                        //   method: CheckoutMethod.card, // Defaults to CheckoutMethod.selectable
+                        //   charge: charge,
+                        // );
+                        // //print(response.status);reference
+                        // if(response.status)
+                        // {
+                        //   print("Ref No");
+                        //   print(response.reference);
+                        //   _updateBookedPayLaterSlot(
+                        //       _patientDetailsArgs!.pFirstName,
+                        //       _patientDetailsArgs!.pLastName,
+                        //       _patientDetailsArgs!.pPhn,
+                        //       _patientDetailsArgs!.pEmail,
+                        //       _patientDetailsArgs!.age,
+                        //       _patientDetailsArgs!.gender,
+                        //       _patientDetailsArgs!.pCity,
+                        //       _patientDetailsArgs!.desc,
+                        //       _patientDetailsArgs!.serviceName,
+                        //       _patientDetailsArgs!.serviceTimeMIn,
+                        //       _patientDetailsArgs!.selectedTime,
+                        //       _patientDetailsArgs!.selectedDate,
+                        //       _patientDetailsArgs!.doctName,
+                        //       _patientDetailsArgs!.deptName,
+                        //       _patientDetailsArgs!.hName,
+                        //       _patientDetailsArgs!.doctId,
+                        //       "Paid",
+                        //       response.reference,
+                        //       "online",
+                        //       _patientDetailsArgs!.cityId,
+                        //       _patientDetailsArgs!.clinicId,
+                        //       _patientDetailsArgs!.deptId);
+                        //   ToastMsg.showToastMsg("Payment success, please don't press back button".tr);
+                        // }
+                        // else ToastMsg.showToastMsg("Payment Failed".tr);
+                        // print(response);
+
+                      }else ToastMsg.showToastMsg("Something went wrong".tr);
+
+                    }else ToastMsg.showToastMsg("Something went wrong".tr);
+                  }
+
+
+                }
+                else if (_paymentMeth == 1) {
+                  setState(() {
+                    _isLoading = false;
+                    _isBtnDisable = "true";
+                  });
+                  if(newAmount==0||_amount==0) {
+                    _updateBookedPayLaterSlot(
+                      _patientDetailsArgs!.pFirstName,
+                      _patientDetailsArgs!.pLastName,
+                      _patientDetailsArgs!.pPhn,
+                      _patientDetailsArgs!.pEmail,
+                      _patientDetailsArgs!.age,
+                      _patientDetailsArgs!.gender,
+                      _patientDetailsArgs!.pCity,
+                      _patientDetailsArgs!.desc,
+                      _patientDetailsArgs!.serviceName,
+                      _patientDetailsArgs!.serviceTimeMIn,
+                      _patientDetailsArgs!.selectedTime,
+                      _patientDetailsArgs!.selectedDate,
+                      _patientDetailsArgs!.doctName,
+                      _patientDetailsArgs!.deptName,
+                      _patientDetailsArgs!.hName,
+                      _patientDetailsArgs!.doctId,
+                      "Paid",
+                      "XXXXXX",
+                      "online",
+                      _patientDetailsArgs!.cityId,
+                      _patientDetailsArgs!.clinicId,
+                      _patientDetailsArgs!.deptId,
+                    );
+                  }else{
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (BuildContext context) => PaypalPayment(
+                          itemPrice: newAmount == null ? _amount  : newAmount!,
+                          onFinish: (number) async {
+                            setState(() {
+                              _isLoading = true;
+                              _isBtnDisable = "";
+                            });
+
+                            _updateBookedPayLaterSlot(
+                                _patientDetailsArgs!.pFirstName,
+                                _patientDetailsArgs!.pLastName,
+                                _patientDetailsArgs!.pPhn,
+                                _patientDetailsArgs!.pEmail,
+                                _patientDetailsArgs!.age,
+                                _patientDetailsArgs!.gender,
+                                _patientDetailsArgs!.pCity,
+                                _patientDetailsArgs!.desc,
+                                _patientDetailsArgs!.serviceName,
+                                _patientDetailsArgs!.serviceTimeMIn,
+                                _patientDetailsArgs!.selectedTime,
+                                _patientDetailsArgs!.selectedDate,
+                                _patientDetailsArgs!.doctName,
+                                _patientDetailsArgs!.deptName,
+                                _patientDetailsArgs!.hName,
+                                _patientDetailsArgs!.doctId,
+                                "Paid",
+                                number.toString(),
+                                "online",
+                                _patientDetailsArgs!.cityId,
+                                _patientDetailsArgs!.clinicId,
+                                _patientDetailsArgs!.deptId);
+                            ToastMsg.showToastMsg(
+                                "Payment success, please don't press back button".tr);
+                            //  _handleAddData(isCOD: false,paymentID: number,paymentMode:"paypal");
+                          },
+                        ),
+                      ),
+                    );
+                  }
+
+                }
+                else
+                  openCheckout();
+              }
+           }
+            else {
+              setState(() {
+                _isLoading = false;
+                _isBtnDisable = "true";
+              });
+              ToastMsg.showToastMsg(
+                  "Slots are fulled, please book for a different date".tr);
+              Navigator.pop(context);
+              Navigator.pop(context);
+              Navigator.pop(context);
+            }
+            // Method handles all the booking system operation.
+          },
+          clickable: _isBtnDisable,
+        ),
+        body: Stack(
+          clipBehavior: Clip.none,
+          children: <Widget>[
+            CAppBarWidget(title: "Booking Confirmation".tr),
+            Positioned(
+              top: 80,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                height: MediaQuery.of(context).size.height,
+                decoration: IBoxDecoration.upperBoxDecoration(),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: <Widget>[
+                      Padding(
+                          padding: const EdgeInsets.only(
+                              top: 20.0, left: 10, right: 10),
+                          child: _isLoading
+                              ? Center(child: LoadingIndicatorWidget())
+                              : Center(
+                                  child: Container(
+                                      // height: 350,
+                                      width: double.infinity,
+                                      child: _cardView(_patientDetailsArgs!)),
+                                )),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ));
+
+    //    Container(
+    //       color: bgColor,
+    //       child: _isLoading
+    //           ? Center(child: CircularProgressIndicator())
+    //           : Center(
+    //               child: Container(
+    //                   height: 250,
+    //                   width: double.infinity,
+    //                   child: _cardView(patientDetailsArgs)),
+    //             )),
+    // );
+  }
+
+  Widget _cardView(PatientDetailsArg args) {
+    return Card(
+      color: Colors.grey[300],
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      elevation: 20,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Container(
+              height: 40,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: appBarColor,
+              ),
+              child: Center(
+                child: Text(
+                  "Please Confirm All Details".tr,
+                  style: TextStyle(
+                    fontFamily: 'OpenSans-SemiBold',
+                    color: Colors.white,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+            Divider(),
+            Text(
+              "Patient Name".tr+" - ${args.pFirstName} " + "${args.pLastName}",
+              style: kCardSubTitleStyle,
+            ),
+            SizedBox(height: 10),
+            Text(
+                "Service Name".tr+" - ${args.serviceName == "Online" ? "Video Consultation" : "Hospital Visit"}",
+                style: kCardSubTitleStyle),
+            SizedBox(height: 10),
+            Text("Date".tr+"- ${args.selectedDate}", style: kCardSubTitleStyle),
+            SizedBox(height: 10),
+            Text("Time".tr+" - ${args.selectedTime}", style: kCardSubTitleStyle),
+            SizedBox(height: 10),
+            Text("City".tr+" - ${args.cityName}", style: kCardSubTitleStyle),
+            SizedBox(height: 10),
+            Text("Clinic".tr+" - ${args.clinicName}", style: kCardSubTitleStyle),
+            SizedBox(height: 10),
+            Text("Doctor Name".tr +"- ${args.doctName}", style: kCardSubTitleStyle),
+            SizedBox(height: 10),
+            Text("Department".tr+" - ${args.deptName}", style: kCardSubTitleStyle),
+            SizedBox(height: 10),
+            Text("Hospital Name".tr+" - ${args.hName}", style: kCardSubTitleStyle),
+            SizedBox(height: 10),
+            Text("Mobile Number".tr+" - ${args.pPhn}", style: kCardSubTitleStyle),
+            SizedBox(height: 10),
+            newAmount==null?
+            Text("Pay Amount - Rs.".tr+" $_amount",      style: TextStyle(
+                fontSize: 16,
+                fontFamily: "OpenSans-SemiBold"
+            )):  Text("Pay Amount - Rs.".tr+" $newAmount",      style: TextStyle(
+                fontSize: 16,
+                fontFamily: "OpenSans-SemiBold"
+            )),
+            SizedBox(height: 10),
+            Text("Available Wallet Balance".tr+" \u{20B9}$walletBalance",
+              style: TextStyle(
+                  fontSize: 16,
+                  fontFamily: "OpenSans-SemiBold"
+              ),),
+            walletBalance=="0"?Container():
+            CheckboxListTile(
+              contentPadding: EdgeInsets.all(0),
+              value:deductFromWallet , onChanged: (value){
+              setState(() {
+                deductFromWallet=value!;
+              });
+              final walletIntAmount=int.parse(walletBalance.toString());
+              if(value??false){
+                if(walletIntAmount<_amount)
+                  setState(() {
+                    newAmount = _amount-int.parse(walletBalance.toString());
+                    deductedWalletAmount=walletIntAmount.toString();
+                    needToPay=true;
+                    paymentValue=1;
+
+                  });
+                else if(walletIntAmount>=_amount){
+                  setState(() {
+                    newAmount =0;
+                    needToPay=false;
+                    paymentValue=1;
+                  });
+                  deductedWalletAmount=(_amount.round()).toString();
+                  print(deductedWalletAmount);
+                }
+              }else{
+                setState(() {
+                  newAmount = null;
+                  needToPay=true;
+                  paymentValue=1;
+                });
+
+              }
+
+            },title: Text("Deduct From Wallet Balance".tr),),
+            needToPay?
+            Column(
+              children: [
+                _patientDetailsArgs.payNowActive!="1"?
+                Container():
+                Column(
+                  children: [
+                    ListTile(
+                      title:  Text('Pay Now'.tr),
+                      leading: Radio(
+                        value: 1,
+                        groupValue: paymentValue,
+                        onChanged: (int? value) {
+                          setState(() {
+                            paymentValue = value!;
+                          });
+                        },
+                      ),
+                    ),
+                    paymentValue == 1
+                        ? ListTile(
+                      title: const Text('Paypal Payment'),
+                      leading: Radio(
+                        value: 1,
+                        groupValue: _paymentMeth,
+                        onChanged: (int? value) {
+                          setState(() {
+                            _paymentMeth = value!;
+                          });
+                        },
+                      ),
+                    )
+                        : Container(),
+                    paymentValue == 1
+                        ? Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        "Note: Please use this id and password for paypal test payment\nEmail: MyclinicTest@paypal.com\nPassword: 12345678",
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    )
+                        : Container(),
+                    paymentValue == 1
+                        ? ListTile(
+                      title: const Text('Paystack Payment'),
+                      leading: Radio(
+                        value: 2,
+                        groupValue: _paymentMeth,
+                        onChanged: (int? value) {
+                          setState(() {
+                            _paymentMeth = value!;
+                          });
+                        },
+                      ),
+                    )
+                        : Container(),
+                    paymentValue == 1
+                        ? ListTile(
+                      title: const Text('Razorpay Indian Payment'),
+                      leading: Radio(
+                        value: 0,
+                        groupValue: _paymentMeth,
+                        onChanged: (int? value) {
+                          setState(() {
+                            _paymentMeth = value!;
+                          });
+                        },
+                      ),
+                    )
+                        : Container(),
+                  ],
+                ),
+
+
+                args.serviceName == "Online"
+                    ? Container()
+                    :  _patientDetailsArgs.payLaterActive=="1"?ListTile(
+                  title:  Text('Pay Later'.tr),
+                  leading: Radio(
+                    value: 0,
+                    groupValue: paymentValue,
+                    onChanged: (int? value) {
+                      setState(() {
+                        paymentValue = value!;
+                      });
+                    },
+                  ),
+                ): Container()
+              ],
+            ):Container(),
+
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _updateBookedPayLaterSlot(
+      pFirstName,
+      pLastName,
+      pPhn,
+      pEmail,
+      age,
+      gender,
+      pCity,
+      desc,
+      serviceName,
+      serviceTimeMin,
+      setTime,
+      selectedDate,
+      String doctName,
+      String department,
+      String hName,
+      String doctId,
+      paymentStatus,
+      paymentId,
+      payMode,
+      cityId,
+      clinicId,
+      deptId) async {
+    setState(() {
+      _isLoading = true;
+      _isBtnDisable = "";
+    });
+    if(deductFromWallet) {
+      if(deductedWalletAmount!="0"&&deductedWalletAmount!=null){
+        await UserService.addDataWallet(payment_id: "XXXXXX",
+            amount: deductedWalletAmount ?? "0",
+            status: "1",
+            desc: "Deduct For Appointment",
+            prAmount: walletBalance ?? "0");
+        _getUserController.getData();
+        final notificationModel = NotificationModel(
+            title: "Debited",
+            body: "${deductedWalletAmount ?? "0"}\u{20B9} successfully debited from your wallet, Deduct For Appointment",
+            uId: _uId,
+            routeTo: "",
+            sendBy: "user",
+            sendFrom: _uName,
+            sendTo: "Admin");
+        await NotificationService.addData(notificationModel);
+        await HandleLocalNotification.showNotification(
+          "Debited", //title
+          "${deductedWalletAmount ?? "0"}\u{20B9} successfully debited from your wallet, Deduct For Appointment", // body
+        );
+
+      }
+    }
+    List dateC = selectedDate.toString().split("-");
+    final pattern = RegExp('\\s+'); //remove all space
+    final patientName = pFirstName + pLastName;
+    String searchByName = patientName
+        .toLowerCase()
+        .replaceAll(pattern, ""); //lowercase all letter and remove all space
+
+    final appointmentModel = AppointmentModel(
+        pFirstName: pFirstName,
+        pLastName: pLastName,
+        pPhn: pPhn,
+        pEmail: pEmail,
+        age: age,
+        gender: gender,
+        pCity: pCity,
+        description: desc,
+        serviceName: serviceName,
+        serviceTimeMin: "",
+        appointmentTime: setTime,
+        appointmentDate: selectedDate,
+        appointmentStatus: "Pending",
+        searchByName: searchByName,
+        uId: _uId,
+        uName: _uName,
+        doctId: doctId,
+        department: department,
+        doctName: doctName,
+        hName: hName,
+        paymentStatus: paymentStatus,
+        oderId: paymentId,
+        amount: _amount.toString(),
+        paymentMode: payMode,
+        deptId: deptId,
+        cityId: cityId,
+        clinicId: clinicId,
+        isOnline: isOnline ? "true" : "false",
+        dateC:
+            dateC[2] + "-" + dateC[0] + "-" + dateC[1]); //initialize all values
+
+    final insertStatus = await AppointmentService.addData(appointmentModel);
+    print("::::::::${appointmentModel.toJsonAdd()}:::::::::::::;$insertStatus");
+    if (insertStatus != "error") {
+      // final updatedTimeSlotsStatus = await UpdateData.updateTimeSlot(
+      //     serviceTimeMin, setTime, selectedDate, insertStatus, doctId);
+      // //if appoint details added successfully added
+      //
+      // if (updatedTimeSlotsStatus == "") {
+        final notificationModel = NotificationModel(
+            title: "Successfully Booked",
+            body:
+                "Appointment has been booked on $selectedDate. Waiting for confirmation",
+            uId: _uId,
+            routeTo: "/Appointmentstatus",
+            sendBy: "user",
+            sendFrom: _uName,
+            sendTo: "Admin");
+        final notificationModelForAdmin = NotificationModel(
+            title: "New Appointment",
+            body:
+                "$pFirstName $pLastName booked an appointment on $selectedDate at $setTime",
+            uId: _uId,
+            sendBy: _uName,
+            doctId: doctId);
+
+        final msgAdded = await NotificationService.addData(notificationModel);
+
+        if (msgAdded == "success") {
+          await NotificationService.addDataForAdmin(notificationModelForAdmin);
+          SharedPreferences _prefs = await SharedPreferences.getInstance();
+          try {
+            _prefs.getStringList("patientData")!.clear();
+            _prefs.setBool("inPaymentState", false);
+          } catch (e) {
+            print(e);
+          }
+          ToastMsg.showToastMsg("Successfully Booked".tr);
+          _handleSendNotification(pFirstName, pLastName, serviceName,
+              selectedDate, setTime, doctId);
+        } else if (msgAdded == "error") {
+          ToastMsg.showToastMsg("Something went wrong. try again".tr);
+
+          Navigator.pop(context);
+        }
+      // } else {
+      //   ToastMsg.showToastMsg("Something went wrong. try again");
+      //   Navigator.pop(context);
+      // }
+    } else {
+      ToastMsg.showToastMsg("Something went wrong. try again".tr);
+      Navigator.pop(context);
+    }
+
+    setState(() {
+      _isLoading = false;
+      _isBtnDisable = "false";
+    });
+  }
+
+  Future<String> _setAdminFcmId(doctId) async {
+    //loading if data till data fetched
+    setState(() {
+      _isLoading = true;
+    });
+    final res = await DrProfileService
+        .getData(); //fetch admin fcm id for sending messages to admin
+    if (res.isNotEmpty) {
+      setState(() {
+        _adminFCMid = res[0].fdmId ?? "";
+      });
+    }
+    final res2 = await DrProfileService.getDataByDrId(
+        doctId); //fetch admin fcm id for sending messages to admin
+    if (res2.isNotEmpty) {
+      setState(() {
+        doctorFcm = res2[0].fdmId ?? "";
+      });
+    }
+    setState(() {
+      _isLoading = false;
+    });
+    return "";
+  }
+
+  void _handleSendNotification(String firstName, String lastName,
+      String serviceName, String selectedDate, String setTime, doctId) async {
+    setState(() {
+      _isLoading = true;
+      _isBtnDisable = "";
+    });
+    await _setAdminFcmId(doctId);
+    await HandleLocalNotification.showNotification(
+      "Successfully Booked", //title
+      "Appointment has been booked on $selectedDate. Waiting for confirmation", // body
+    );
+    await UpdateData.updateIsAnyNotification("usersList", _uId, true);
+
+    //send notification to admin app for booking confirmation
+    print("++++++++++++admin$_adminFCMid");
+    print("++++++++++++doctor$doctorFcm");
+    await HandleFirebaseNotification.sendPushMessage(
+        _adminFCMid, //admin fcm
+        "New Appointment", //title
+        "$firstName $lastName booked an appointment on $selectedDate at $setTime" //body
+        );
+    await HandleFirebaseNotification.sendPushMessage(
+        doctorFcm, //admin fcm
+        "New Appointment", //title
+        "$firstName $lastName booked an appointment on $selectedDate at $setTime" //body
+        );
+    await UpdateData.updateIsAnyNotification("doctorsNoti", doctId, true);
+    await UpdateData.updateIsAnyNotification("profile", "profile", true);
+
+    Navigator.of(context).pushNamedAndRemoveUntil(
+        '/Appointmentstatus', ModalRoute.withName('/HomePage'));
+  }
+
+
+}
+
+
+
+import 'package:demopatient/SetData/screenArg.dart';
+import 'package:demopatient/utilities/color.dart';
+import 'package:demopatient/utilities/decoration.dart';
+import 'package:demopatient/utilities/inputfields.dart';
+import 'package:demopatient/utilities/toastMsg.dart';
+import 'package:demopatient/widgets/appbarsWidget.dart';
+import 'package:demopatient/widgets/bottomNavigationBarWidget.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class RegisterPatient extends StatefulWidget {
+  RegisterPatient({Key? key}) : super(key: key);
+
+  @override
+  _RegisterPatientState createState() => _RegisterPatientState();
+}
+
+class _RegisterPatientState extends State<RegisterPatient> {
+  final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  TextEditingController _emailController = TextEditingController();
+  TextEditingController _firstNameController = TextEditingController();
+  TextEditingController _lastNameController = TextEditingController();
+  TextEditingController _cityController = TextEditingController();
+  TextEditingController _phoneNumberController = TextEditingController();
+  TextEditingController ageController = TextEditingController();
+  TextEditingController _desController = TextEditingController();
+  String _selectedGender = 'Gender';
+  var _chooseTimeScrArgs;
+  var _isBtnDisable = "false";
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    _getAndSetData();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _phoneNumberController.dispose();
+    _emailController.dispose();
+    ageController.dispose();
+    _cityController.dispose();
+    _desController.dispose();
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _chooseTimeScrArgs = ModalRoute.of(context)!.settings.arguments;
+    return Scaffold(
+        bottomNavigationBar: BottomNavigationStateWidget(
+          title: "Next",
+          onPressed: () {
+            if (_formKey.currentState!.validate()) {
+              if (_selectedGender == "Gender") {
+                ToastMsg.showToastMsg("Please select gender");
+              } else {
+                Navigator.pushNamed(
+                  context,
+                  '/ConfirmationPage',
+                  arguments: PatientDetailsArg(
+                      _firstNameController.text,
+                      _lastNameController.text,
+                      _phoneNumberController.text,
+                      _emailController.text,
+                      ageController.text,
+                      _selectedGender,
+                      _cityController.text,
+                      _desController.text,
+                      _chooseTimeScrArgs.serviceName,
+                      _chooseTimeScrArgs.serviceTimeMIn,
+                      _chooseTimeScrArgs.selectedTime,
+                      _chooseTimeScrArgs.selectedDate,
+                      _chooseTimeScrArgs.doctName,
+                      _chooseTimeScrArgs.deptName,
+                      _chooseTimeScrArgs.hName,
+                      _chooseTimeScrArgs.doctId,
+                      _chooseTimeScrArgs.fee,
+                      _chooseTimeScrArgs.deptId,
+                      _chooseTimeScrArgs.cityId,
+                      _chooseTimeScrArgs.clinicId,
+                      _chooseTimeScrArgs.clinicName,
+                      _chooseTimeScrArgs.cityName,
+                      "",
+                      "",
+                    _chooseTimeScrArgs.payNowActive,
+                    _chooseTimeScrArgs.payLaterActive,
+                    _chooseTimeScrArgs.wspd,
+                    _chooseTimeScrArgs.vspd,),
+                );
+              }
+            }
+          },
+          clickable: _isBtnDisable,
+        ),
+        body: Stack(
+          clipBehavior: Clip.none,
+          children: <Widget>[
+            CAppBarWidget(title: "Register Patient"),
+            Positioned(
+              top: 80,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                height: MediaQuery.of(context).size.height,
+                decoration: IBoxDecoration.upperBoxDecoration(),
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: _formKey,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          top: 8.0, bottom: 8.0, left: 15, right: 15),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          InputFields.textInputFormField(
+                            context,
+                            "First Name*",
+                            TextInputType.text,
+                            _firstNameController,
+                            1,
+                            (item) {
+                              return item.length > 0
+                                  ? null
+                                  : "Enter your first name";
+                            },
+                          ),
+                          InputFields.textInputFormField(
+                            context,
+                            "Last Name*",
+                            TextInputType.text,
+                            _lastNameController,
+                            1,
+                            (item) {
+                              return item.length > 0 ? null : "Enter last name";
+                            },
+                          ),
+                          InputFields.textInputFormField(
+                            context,
+                            "Phone Number*",
+                            TextInputType.number,
+                            _phoneNumberController,
+                            1,
+                            (item) {
+                              return item.length > 8
+                                  ? null
+                                  : "Enter a valid Phone number ";
+                            },
+                          ),
+                          InputFields.textInputFormField(
+                            context,
+                            "Email",
+                            TextInputType.emailAddress,
+                            _emailController,
+                            1,
+                            (item) {
+                              Pattern pattern =
+                                  r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]"
+                                  r"{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]"
+                                  r"{0,253}[a-zA-Z0-9])?)*$";
+                              RegExp regex = new RegExp(pattern.toString());
+                              if (item.length > 0) {
+                                if (!regex.hasMatch(item) || item == null)
+                                  return 'Enter a valid email address';
+                                else
+                                  return null;
+                              } else
+                                return null;
+                            },
+                          ),
+                          InputFields.ageInputFormField(
+                            context,
+                            "Age*",
+                            TextInputType.number,
+                            ageController,
+                            false,
+                            (item) {
+                              if (item.length > 0 && item.length <= 3)
+                                return null;
+                              else if (item.length > 3)
+                                return "Enter valid age";
+                              else
+                                return "Enter age";
+                            },
+                          ),
+                          Container(
+                            width: double.infinity,
+                            child: _genderDropDown(),
+                          ),
+                          InputFields.textInputFormField(
+                            context,
+                            "City*",
+                            TextInputType.text,
+                            _cityController,
+                            1,
+                            (item) {
+                              return item.length > 0 ? null : "Enter city";
+                            },
+                          ),
+                          InputFields.textInputFormField(
+                            context,
+                            "Description, About your Problem",
+                            TextInputType.text,
+                            _desController,
+                            5,
+                            (item) {
+                              if (item.isEmpty)
+                                return null;
+                              else {
+                                return item.length > 0
+                                    ? null
+                                    : "Enter Description";
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ));
+  }
+
+  _genderDropDown() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 0, right: 15),
+      child: DropdownButton<String>(
+        focusColor: Colors.white,
+        value: _selectedGender,
+        //elevation: 5,
+        style: TextStyle(color: Colors.white),
+        iconEnabledColor: btnColor,
+        items: <String>[
+          'Gender',
+          'Male',
+          'Female',
+          'Other',
+        ].map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(
+              value,
+              style: TextStyle(color: Colors.black),
+            ),
+          );
+        }).toList(),
+        hint: Text(
+          "Select Gender",
+        ),
+        onChanged: (String? value) {
+          setState(() {
+            print(value);
+            _selectedGender = value!;
+          });
+        },
+      ),
+    );
+  }
+
+  void _getAndSetData() async {
+    SharedPreferences _prefs = await SharedPreferences.getInstance();
+    _firstNameController.text = _prefs.getString("firstName")!;
+    _lastNameController.text = _prefs.getString("lastName")!;
+    _phoneNumberController.text = _prefs.getString('phn')!;
+    _emailController.text = _prefs.getString("email")!;
+    ageController.text = _prefs.getString("age")!;
+    _cityController.text = _prefs.getString("city")!;
+    setState(() {
+      _selectedGender = _prefs.getString("gender")!;
+    });
+  }
+}
+
